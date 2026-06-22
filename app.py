@@ -15,13 +15,17 @@ def get_domain_rating(domain):
     }
     
     try:
-        # A 10-second timeout prevents the app from hanging
         response = requests.get(url, params=params, headers=headers, timeout=10)
         
         if response.status_code == 200:
             data = response.json()
-            # Navigate the nested JSON response
-            return data.get("domain_rating", {}).get("domain_rating", "N/A")
+            dr = data.get("domain_rating", {}).get("domain_rating", "N/A")
+            
+            # Convert float to integer if a valid number is returned
+            if isinstance(dr, (float, int)):
+                return int(dr)
+            return dr
+            
         elif response.status_code == 429:
             return "Rate Limited (429)"
         else:
@@ -40,16 +44,21 @@ tab1, tab2 = st.tabs(["Single URL", "Batch Check"])
 # --- Tab 1: Single URL Checker ---
 with tab1:
     st.subheader("Check a Single Domain")
-    single_url = st.text_input("Enter a domain or URL (e.g., ahrefs.com):", placeholder="example.com")
+    single_url = st.text_input("Enter a domain or URL (e.g., ahrefs.com):", placeholder="https://www.example.com")
     
     if st.button("Check DR", key="btn_single", type="primary"):
         if single_url:
             with st.spinner(f"Fetching Domain Rating for {single_url}..."):
                 dr = get_domain_rating(single_url.strip())
                 
-                # Check if the result is a valid number
-                if isinstance(dr, (float, int)):
+                # Check if the result is a valid number (now guaranteed to be an integer)
+                if isinstance(dr, int):
+                    # Display the success message
                     st.success(f"**{single_url}** has a Domain Rating of: **{dr}**")
+                    
+                    # Display the exact same table interface as the bulk check
+                    df_single = pd.DataFrame([{"Target URL": single_url.strip(), "Domain Rating": dr}])
+                    st.dataframe(df_single, use_container_width=True)
                 else:
                     st.error(f"Could not retrieve DR. Status: {dr}")
         else:
@@ -58,7 +67,7 @@ with tab1:
 # --- Tab 2: Batch URL Checker ---
 with tab2:
     st.subheader("Check Multiple Domains")
-    st.markdown("Enter multiple domains below (one per line). *Note: A 1-second delay is added between requests to avoid rate limits.*")
+    st.markdown("Enter multiple domains below (one per line). *Note: A 1.5-second delay is added between requests to avoid rate limits.*")
     
     batch_urls = st.text_area("Enter domains here:", height=200, placeholder="ahrefs.com\ngoogle.com\nstripe.com")
     
@@ -87,9 +96,9 @@ with tab2:
                 # Update progress
                 progress_bar.progress((i + 1) / len(urls))
                 
-                # Sleep to respect rate limits (Ahrefs throttles heavy public API usage)
+                # Sleep to respect rate limits (1.5 seconds for safer bulk processing)
                 if i < len(urls) - 1:
-                    time.sleep(1.35)
+                    time.sleep(1.5)
                 
             status_text.text("Batch processing complete!")
             

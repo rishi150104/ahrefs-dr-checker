@@ -67,7 +67,7 @@ with tab1:
 # --- Tab 2: Batch URL Checker ---
 with tab2:
     st.subheader("Check Multiple Domains")
-    st.markdown("Enter multiple domains below (one per line). *Note: A 1.5-second delay is added between requests to avoid rate limits.*")
+    st.markdown("Enter multiple domains below (one per line). You can add upto 50 urls at a time.")
     
     batch_urls = st.text_area("Enter domains here:", height=200, placeholder="ahrefs.com\ngoogle.com\nstripe.com")
     

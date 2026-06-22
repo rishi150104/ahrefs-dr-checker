@@ -54,7 +54,7 @@ with tab1:
                 # Check if the result is a valid number (now guaranteed to be an integer)
                 if isinstance(dr, int):
                     # Display the success message
-                    st.success(f"**{single_url}** has a Domain Rating of: **{dr}**")
+                    # st.success(f"**{single_url}** has a Domain Rating of: **{dr}**")
                     
                     # Display the exact same table interface as the bulk check
                     df_single = pd.DataFrame([{"Target URL": single_url.strip(), "Domain Rating": dr}])
